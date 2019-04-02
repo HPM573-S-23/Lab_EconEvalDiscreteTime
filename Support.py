@@ -146,41 +146,19 @@ def report_CEA_CBA(sim_outcomes_mono, sim_outcomes_combo):
     """
 
     # define two strategies
-    mono_therapy_strategy = Econ.Strategy(
-        name='Mono Therapy',
-        cost_obs=sim_outcomes_mono.costs,
-        effect_obs=sim_outcomes_mono.utilities,
-        color='green'
-    )
-    combo_therapy_strategy = Econ.Strategy(
-        name='Combination Therapy',
-        cost_obs=sim_outcomes_combo.costs,
-        effect_obs=sim_outcomes_combo.utilities,
-        color='blue'
-    )
+
 
     # do CEA
-    CEA = Econ.CEA(
-        strategies=[mono_therapy_strategy, combo_therapy_strategy],
-        if_paired=False
-    )
+
 
     # show the cost-effectiveness plane
     show_ce_figure(CEA=CEA)
 
     # report the CE table
-    CEA.build_CE_table(
-        interval_type='c',
-        alpha=D.ALPHA,
-        cost_digits=0,
-        effect_digits=2,
-        icer_digits=2)
+
 
     # CBA
-    NBA = Econ.CBA(
-        strategies=[mono_therapy_strategy, combo_therapy_strategy],
-        if_paired=False
-    )
+
     # show the net monetary benefit figure
     NBA.graph_incremental_NMBs(
         min_wtp=0,

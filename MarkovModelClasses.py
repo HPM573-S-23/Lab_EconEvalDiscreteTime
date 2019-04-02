@@ -107,26 +107,16 @@ class PatientCostUtilityMonitor:
         """
 
         # update cost
-        cost = 0.5 * (self.params.annualStateCosts[current_state.value] +
-                      self.params.annualStateCosts[next_state.value])
+
         # update utility
-        utility = 0.5 * (self.params.annualStateUtilities[current_state.value] +
-                         self.params.annualStateUtilities[next_state.value])
+
 
         # add the cost of treatment
         # if HIV death will occur, add the cost for half-year of treatment
-        if next_state == P.HealthStates.HIV_DEATH:
-            cost += 0.5 * self.params.annualTreatmentCost
-        else:
-            cost += 1 * self.params.annualTreatmentCost
+
 
         # update total discounted cost and utility (corrected for the half-cycle effect)
-        self.totalDiscountedCost += Econ.pv_single_payment(payment=cost,
-                                                           discount_rate=self.params.discountRate / 2,
-                                                           discount_period=2 * k + 1)
-        self.totalDiscountedUtility += Econ.pv_single_payment(payment=utility,
-                                                              discount_rate=self.params.discountRate / 2,
-                                                              discount_period=2 * k + 1)
+
 
 
 class Cohort:
