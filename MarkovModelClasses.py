@@ -1,8 +1,10 @@
 import ParameterClasses as P
+from InputData import HealthStates
 import SimPy.RandomVariantGenerators as RVGs
 import SimPy.SamplePathClasses as Path
-import SimPy.EconEvalClasses as Econ
+import SimPy.EconEval as Econ
 import SimPy.StatisticalClasses as Stat
+import SimPy.MarkovClasses as Markov
 
 
 class Patient:
@@ -12,30 +14,29 @@ class Patient:
         :param parameters: an instance of the parameters class
         """
         self.id = id
-        self.rng = RVGs.RNG(seed=id)
         self.params = parameters
         self.stateMonitor = PatientStateMonitor(parameters=parameters)
 
     def simulate(self, n_time_steps):
         """ simulate the patient over the specified simulation length """
 
+        # random number generator
+        rng = RVGs.RNG(seed=self.id)
+        # jump process
+        markov_jump = Markov.MarkovJumpProcess(transition_prob_matrix=self.params.probMatrix)
+
         k = 0  # simulation time step
 
         # while the patient is alive and simulation length is not yet reached
         while self.stateMonitor.get_if_alive() and k < n_time_steps:
-
-            # find the transition probabilities to future states
-            trans_probs = self.params.probMatrix[self.stateMonitor.currentState.value]
-
-            # create an empirical distribution
-            empirical_dist = RVGs.Empirical(probabilities=trans_probs)
-
-            # sample from the empirical distribution to get a new state
+            # sample from the Markov jump process to get a new state
             # (returns an integer from {0, 1, 2, ...})
-            new_state_index = empirical_dist.sample(rng=self.rng)
+            new_state_index = markov_jump.get_next_state(
+                current_state_index=self.stateMonitor.currentState.value,
+                rng=rng)
 
             # update health state
-            self.stateMonitor.update(time_step=k, new_state=P.HealthStates(new_state_index))
+            self.stateMonitor.update(time_step=k, new_state=HealthStates(new_state_index))
 
             # increment time
             k += 1
@@ -59,16 +60,12 @@ class PatientStateMonitor:
         :param new_state: new state
         """
 
-        # if the patient has died, do nothing
-        if self.currentState == P.HealthStates.HIV_DEATH:
-            return
-
         # update survival time
-        if new_state == P.HealthStates.HIV_DEATH:
+        if new_state == HealthStates.HIV_DEATH:
             self.survivalTime = time_step + 0.5  # corrected for the half-cycle effect
 
         # update time until AIDS
-        if self.currentState != P.HealthStates.AIDS and new_state == P.HealthStates.AIDS:
+        if self.currentState != HealthStates.AIDS and new_state == HealthStates.AIDS:
             self.ifDevelopedAIDS = True
             self.timeToAIDS = time_step + 0.5  # corrected for the half-cycle effect
 
@@ -82,7 +79,7 @@ class PatientStateMonitor:
 
     def get_if_alive(self):
         """ returns true if the patient is still alive """
-        if self.currentState != P.HealthStates.HIV_DEATH:
+        if self.currentState != HealthStates.HIV_DEATH:
             return True
         else:
             return False
@@ -127,28 +124,31 @@ class Cohort:
         :param parameters: parameters
         """
         self.id = id
-        self.initialPopSize = pop_size  # initial population size
-        self.patients = []  # list of patients
+        self.popSize = pop_size
+        self.params = parameters
         self.cohortOutcomes = CohortOutcomes()  # outcomes of the this simulated cohort
-
-        # populate the cohort
-        for i in range(pop_size):
-            # create a new patient (use id * pop_size + n as patient id)
-            patient = Patient(id=id * pop_size + i, parameters=parameters)
-            # add the patient to the cohort
-            self.patients.append(patient)
 
     def simulate(self, n_time_steps):
         """ simulate the cohort of patients over the specified number of time-steps
         :param n_time_steps: number of time steps to simulate the cohort
         """
+
+        # populate the cohort
+        patients = []  # list of patients
+        for i in range(self.popSize):
+            # create a new patient (use id * pop_size + n as patient id)
+            patient = Patient(id=self.id * self.popSize + i,
+                              parameters=self.params)
+            # add the patient to the cohort
+            patients.append(patient)
+
         # simulate all patients
-        for patient in self.patients:
+        for patient in patients:
             # simulate
             patient.simulate(n_time_steps=n_time_steps)
 
         # store outputs of this simulation
-        self.cohortOutcomes.extract_outcomes(simulated_patients=self.patients)
+        self.cohortOutcomes.extract_outcomes(simulated_patients=patients)
 
 
 class CohortOutcomes:
@@ -157,7 +157,7 @@ class CohortOutcomes:
         self.survivalTimes = []         # patients' survival times
         self.timesToAIDS = []           # patients' times to AIDS
         self.costs = []                 # patients' discounted costs
-        self.utilities =[]              # patients' discounted utilities
+        self.utilities = []              # patients' discounted utilities
         self.nLivingPatients = None  # survival curve (sample path of number of alive patients over time)
 
         self.statSurvivalTime = None    # summary statistics for survival time

@@ -3,14 +3,6 @@ import numpy as np
 import InputData as Data
 
 
-class HealthStates(Enum):
-    """ health states of patients with HIV """
-    CD4_200to500 = 0
-    CD4_200 = 1
-    AIDS = 2
-    HIV_DEATH = 3
-
-
 class Therapies(Enum):
     """ mono vs. combination therapy """
     MONO = 0
@@ -24,7 +16,7 @@ class ParametersFixed:
         self.therapy = therapy
 
         # initial health state
-        self.initialHealthState = HealthStates.CD4_200to500
+        self.initialHealthState = Data.HealthStates.CD4_200to500
 
         # annual treatment cost
         if self.therapy == Therapies.MONO:
