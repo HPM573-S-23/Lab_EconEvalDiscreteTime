@@ -67,7 +67,8 @@ def plot_survival_curves_and_histograms(sim_outcomes_mono, sim_outcomes_combo):
         title='Survival curve',
         x_label='Simulation time step (year)',
         y_label='Number of alive patients',
-        legends=['Mono Therapy', 'Combination Therapy']
+        legends=['Mono Therapy', 'Combination Therapy'],
+        color_codes=['green', 'blue']
     )
 
     # histograms of survival times
@@ -84,7 +85,8 @@ def plot_survival_curves_and_histograms(sim_outcomes_mono, sim_outcomes_combo):
         y_label='Counts',
         bin_width=1,
         legends=['Mono Therapy', 'Combination Therapy'],
-        transparency=0.6
+        transparency=0.5,
+        color_codes=['green', 'blue']
     )
 
 
