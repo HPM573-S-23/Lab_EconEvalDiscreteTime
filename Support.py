@@ -166,7 +166,8 @@ def report_CEA_CBA(sim_outcomes_mono, sim_outcomes_combo):
         alpha=D.ALPHA,
         cost_digits=0,
         effect_digits=2,
-        icer_digits=2)
+        icer_digits=2,
+        file_name='CETable.csv')
 
     # CBA
 
