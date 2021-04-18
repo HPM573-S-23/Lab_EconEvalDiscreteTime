@@ -1,10 +1,10 @@
-import ParameterClasses as P
+import numpy as np
+
+import SimPy.Markov as Markov
+import SimPy.Plots.SamplePaths as Path
 from InputData import HealthStates
-import SimPy.RandomVariantGenerators as RVGs
-import SimPy.SamplePathClasses as Path
 import SimPy.EconEval as Econ
-import SimPy.StatisticalClasses as Stat
-import SimPy.MarkovClasses as Markov
+import SimPy.Statistics as Stat
 
 
 class Patient:
@@ -21,7 +21,7 @@ class Patient:
         """ simulate the patient over the specified simulation length """
 
         # random number generator
-        rng = RVGs.RNG(seed=self.id)
+        rng = np.random.RandomState(seed=self.id)
         # jump process
         markov_jump = Markov.MarkovJumpProcess(transition_prob_matrix=self.params.probMatrix)
 
@@ -49,7 +49,6 @@ class PatientStateMonitor:
         self.currentState = parameters.initialHealthState   # initial health state
         self.survivalTime = None      # survival time
         self.timeToAIDS = None        # time to develop AIDS
-        self.ifDevelopedAIDS = False  # if the patient developed AIDS
         # patient's cost and utility monitor
         self.costUtilityMonitor = PatientCostUtilityMonitor(parameters=parameters)
 
@@ -66,7 +65,6 @@ class PatientStateMonitor:
 
         # update time until AIDS
         if self.currentState != HealthStates.AIDS and new_state == HealthStates.AIDS:
-            self.ifDevelopedAIDS = True
             self.timeToAIDS = time_step + 0.5  # corrected for the half-cycle effect
 
         # update cost and utility
@@ -175,7 +173,7 @@ class CohortOutcomes:
             if not (patient.stateMonitor.survivalTime is None):
                 self.survivalTimes.append(patient.stateMonitor.survivalTime)
             # time until AIDS
-            if patient.stateMonitor.ifDevelopedAIDS:
+            if patient.stateMonitor.timeToAIDS is not None:
                 self.timesToAIDS.append(patient.stateMonitor.timeToAIDS)
             # discounted cost and discounted utility
             self.costs.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedCost)

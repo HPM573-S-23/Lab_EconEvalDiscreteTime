@@ -1,9 +1,8 @@
 import InputData as D
 import SimPy.Plots.SamplePaths as Path
 import SimPy.Plots.Histogram as Hist
-import SimPy.StatisticalClasses as Stat
+import SimPy.Statistics as Stat
 import SimPy.EconEval as Econ
-import matplotlib.pyplot as plt
 
 
 def print_outcomes(sim_outcomes, therapy_name):
