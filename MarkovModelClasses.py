@@ -180,10 +180,10 @@ class CohortOutcomes:
             self.utilities.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedUtility)
 
         # summary statistics
-        self.statSurvivalTime = Stat.SummaryStat('Survival time', self.survivalTimes)
-        self.statTimeToAIDS = Stat.SummaryStat('Time until AIDS', self.timesToAIDS)
-        self.statCost = Stat.SummaryStat('Discounted cost', self.costs)
-        self.statUtility = Stat.SummaryStat('Discounted utility', self.utilities)
+        self.statSurvivalTime = Stat.SummaryStat(name='Survival time', data=self.survivalTimes)
+        self.statTimeToAIDS = Stat.SummaryStat(name='Time until AIDS', data=self.timesToAIDS)
+        self.statCost = Stat.SummaryStat(name='Discounted cost', data=self.costs)
+        self.statUtility = Stat.SummaryStat(name='Discounted utility', data=self.utilities)
 
         # survival curve
         self.nLivingPatients = Path.PrevalencePathBatchUpdate(

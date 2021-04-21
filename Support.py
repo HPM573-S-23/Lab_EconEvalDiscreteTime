@@ -154,7 +154,7 @@ def report_CEA_CBA(sim_outcomes_mono, sim_outcomes_combo):
 
     # plot cost-effectiveness plane
     CEA.plot_CE_plane(
-        title='Cost-Effectiveness Analysi',
+        title='Cost-Effectiveness Analysis',
         x_label='Additional QALYs',
         y_label='Additional Cost'
     )
