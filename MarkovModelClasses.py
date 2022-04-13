@@ -2,9 +2,8 @@ import numpy as np
 
 import SimPy.Markov as Markov
 import SimPy.Plots.SamplePaths as Path
-from InputData import HealthStates
-import SimPy.EconEval as Econ
 import SimPy.Statistics as Stat
+from InputData import HealthStates
 
 
 class Patient:
@@ -131,22 +130,19 @@ class Cohort:
         :param n_time_steps: number of time steps to simulate the cohort
         """
 
-        # populate the cohort
-        patients = []  # list of patients
+        # populate and simulate the cohort
         for i in range(self.popSize):
             # create a new patient (use id * pop_size + n as patient id)
             patient = Patient(id=self.id * self.popSize + i,
                               parameters=self.params)
-            # add the patient to the cohort
-            patients.append(patient)
-
-        # simulate all patients
-        for patient in patients:
             # simulate
-            patient.simulate(n_time_steps=n_time_steps)
+            patient.simulate(n_time_steps)
 
-        # store outputs of this simulation
-        self.cohortOutcomes.extract_outcomes(simulated_patients=patients)
+            # store outputs of this simulation
+            self.cohortOutcomes.extract_outcome(simulated_patient=patient)
+
+        # calculate cohort outcomes
+        self.cohortOutcomes.calculate_cohort_outcomes(initial_pop_size=self.popSize)
 
 
 class CohortOutcomes:
@@ -163,32 +159,39 @@ class CohortOutcomes:
         self.statCost = None            # summary statistics for discounted cost
         self.statUtility = None         # summary statistics for discounted utility
 
-    def extract_outcomes(self, simulated_patients):
+    def extract_outcome(self, simulated_patient):
         """ extracts outcomes of a simulated cohort
-        :param simulated_patients: a list of simulated patients"""
+        :param simulated_patient: a simulated patients"""
 
-        # record patient outcomes
-        for patient in simulated_patients:
-            # survival time
-            if not (patient.stateMonitor.survivalTime is None):
-                self.survivalTimes.append(patient.stateMonitor.survivalTime)
-            # time until AIDS
-            if patient.stateMonitor.timeToAIDS is not None:
-                self.timesToAIDS.append(patient.stateMonitor.timeToAIDS)
-            # discounted cost and discounted utility
-            self.costs.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedCost)
-            self.utilities.append(patient.stateMonitor.costUtilityMonitor.totalDiscountedUtility)
+        # survival time
+        if simulated_patient.stateMonitor.survivalTime is not None:
+            self.survivalTimes.append(simulated_patient.stateMonitor.survivalTime)
+        # time until AIDS
+        if simulated_patient.stateMonitor.timeToAIDS is not None:
+            self.timesToAIDS.append(simulated_patient.stateMonitor.timeToAIDS)
+        # discounted cost and discounted utility
+        self.costs.append(simulated_patient.stateMonitor.costUtilityMonitor.totalDiscountedCost)
+        self.utilities.append(simulated_patient.stateMonitor.costUtilityMonitor.totalDiscountedUtility)
+
+    def calculate_cohort_outcomes(self, initial_pop_size):
+        """ calculates the cohort outcomes
+        :param initial_pop_size: initial population size
+        """
 
         # summary statistics
-        self.statSurvivalTime = Stat.SummaryStat(name='Survival time', data=self.survivalTimes)
-        self.statTimeToAIDS = Stat.SummaryStat(name='Time until AIDS', data=self.timesToAIDS)
-        self.statCost = Stat.SummaryStat(name='Discounted cost', data=self.costs)
-        self.statUtility = Stat.SummaryStat(name='Discounted utility', data=self.utilities)
+        self.statSurvivalTime = Stat.SummaryStat(
+            name='Survival time', data=self.survivalTimes)
+        self.statTimeToAIDS = Stat.SummaryStat(
+            name='Time until AIDS', data=self.timesToAIDS)
+        self.statCost = Stat.SummaryStat(
+            name='Discounted cost', data=self.costs)
+        self.statUtility = Stat.SummaryStat(
+            name='Discounted utility', data=self.utilities)
 
         # survival curve
         self.nLivingPatients = Path.PrevalencePathBatchUpdate(
             name='# of living patients',
-            initial_size=len(simulated_patients),
+            initial_size=initial_pop_size,
             times_of_changes=self.survivalTimes,
             increments=[-1]*len(self.survivalTimes)
         )
