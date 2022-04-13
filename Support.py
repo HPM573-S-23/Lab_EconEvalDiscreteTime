@@ -148,7 +148,7 @@ def report_CEA_CBA(sim_outcomes_mono, sim_outcomes_combo):
     # define two strategies
 
 
-    # do CEA
+    # do cost-effectiveness analysis
     # (the first strategy in the list of strategies is assumed to be the 'Base' strategy)
 
 
@@ -171,7 +171,7 @@ def report_CEA_CBA(sim_outcomes_mono, sim_outcomes_combo):
         icer_digits=2,
         file_name='CETable.csv')
 
-    # CBA
+    # do cost-benefit analysis
 
     # show the net monetary benefit figure
     NBA.plot_incremental_nmbs(
